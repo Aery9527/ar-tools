@@ -70,25 +70,19 @@ func OpenMultipleFiles(title string, filterName string, filterPattern string) ([
 
 	ret, _, _ := procGetOpenFileNameW.Call(uintptr(unsafe.Pointer(&ofn)))
 	if ret == 0 {
-		// User cancelled or error; treat both as cancel
 		return nil, nil
 	}
 
 	return parseMultiSelect(fileBuf), nil
 }
 
-// makeFilter builds a Windows file filter string (double-null terminated).
 func makeFilter(displayName, pattern string) []uint16 {
-	// Format: "Display Name\0Pattern\0\0"
 	raw := displayName + "\x00" + pattern + "\x00"
 	result := utf16.Encode([]rune(raw))
-	result = append(result, 0) // trailing null
+	result = append(result, 0)
 	return result
 }
 
-// parseMultiSelect parses the file buffer returned by GetOpenFileNameW.
-// Single selection: "C:\path\file.xlsx\0\0"
-// Multi selection:  "C:\directory\0file1.xlsx\0file2.xlsx\0\0"
 func parseMultiSelect(buf []uint16) []string {
 	var parts []string
 	start := 0
@@ -109,7 +103,6 @@ func parseMultiSelect(buf []uint16) []string {
 		return parts
 	}
 
-	// Multiple files: first part is directory, rest are file names
 	dir := parts[0]
 	files := make([]string, len(parts)-1)
 	for i, f := range parts[1:] {

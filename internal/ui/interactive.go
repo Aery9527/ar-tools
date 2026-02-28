@@ -59,7 +59,7 @@ func runXlsx2md() error {
 		"*.xlsx",
 	)
 	if err != nil {
-		return fmt.Errorf("file selection failed: %w", err)
+		return fmt.Errorf("檔案選擇失敗: %w", err)
 	}
 	if len(files) == 0 {
 		fmt.Println("已取消選擇")
