@@ -15,7 +15,10 @@ applyTo: "**/*.go"
 
 ## 概述
 
-ar-tools 是一個互動式 CLI 工具集，提供各種開發者實用功能。目前支援 Excel (.xlsx) 轉 Markdown (.md) 表格。
+ar-tools 是一個互動式 CLI 工具集，提供各種開發者實用功能。目前支援：
+
+- Excel (.xlsx) 轉 Markdown (.md) 表格
+- PowerPoint (.pptx) 轉 Markdown (.md)，含圖片擷取
 
 ## 專案結構
 
@@ -27,11 +30,17 @@ ar-tools/
 │   │   └── dialog_windows.go   # Windows 原生檔案對話框 (comdlg32.dll GetOpenFileNameW)
 │   ├── ui/
 │   │   └── interactive.go      # 互動式選單與流程控制
-│   └── xlsx2md/
-│       ├── converter.go        # Excel → Markdown 核心轉換邏輯
+│   ├── xlsx2md/
+│   │   ├── converter.go        # Excel → Markdown 核心轉換邏輯
+│   │   └── converter_test.go   # 轉換邏輯測試
+│   └── pptx2md/
+│       ├── parser.go           # PPTX ZIP/XML 解析 (標準庫 archive/zip + encoding/xml)
+│       ├── converter.go        # PPTX → Markdown 轉換 + 圖片匯出
 │       └── converter_test.go   # 轉換邏輯測試
 ├── testdata/
-│   └── sample.xlsx             # 測試用 Excel 範例檔
+│   ├── sample.xlsx             # 測試用 Excel 範例檔
+│   ├── sample.pptx             # 測試用 PowerPoint 範例檔
+│   └── gen_pptx.go             # 產生 sample.pptx 的工具 (go:build ignore)
 ├── go.mod
 └── go.sum
 ```
@@ -56,9 +65,13 @@ go run .
 ```
 
 執行後進入互動式選單：
-1. 選擇功能編號（如 `1` = Excel → Markdown）
-2. 彈出 Windows 原生檔案選擇視窗，Ctrl+Click 多選 .xlsx 檔案
+1. 選擇功能編號（`1` = Excel → Markdown, `2` = PowerPoint → Markdown）
+2. 彈出 Windows 原生檔案選擇視窗，Ctrl+Click 多選檔案
 3. 轉換完成後回到主選單，輸入 `0` 離開
+
+PPTX 轉換輸出：
+- `{檔名}.md` — Markdown 文件
+- `{檔名}_images/` — 從簡報中擷取的圖片，Markdown 中以 `![](./xxx_images/file.png)` 連結
 
 ## 新增功能指引
 
