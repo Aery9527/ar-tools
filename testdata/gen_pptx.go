@@ -33,6 +33,10 @@ func main() {
 	writeFile(w, "ppt/slides/slide2.xml", slide2)
 	writeFile(w, "ppt/slides/_rels/slide2.xml.rels", slide2Rels)
 
+	// Slide 3: table
+	writeFile(w, "ppt/slides/slide3.xml", slide3)
+	writeFile(w, "ppt/slides/_rels/slide3.xml.rels", slide3Rels)
+
 	// Minimal layout/master (required for valid pptx)
 	writeFile(w, "ppt/slideLayouts/slideLayout1.xml", slideLayout)
 	writeFile(w, "ppt/slideLayouts/_rels/slideLayout1.xml.rels", slideLayoutRels)
@@ -77,6 +81,7 @@ const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
   <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/slides/slide2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+  <Override PartName="/ppt/slides/slide3.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>
   <Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>
 </Types>`
@@ -91,11 +96,12 @@ const presentation = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
   xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
   xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <p:sldMasterIdLst>
-    <p:sldMasterId r:id="rId3"/>
+    <p:sldMasterId r:id="rId4"/>
   </p:sldMasterIdLst>
   <p:sldIdLst>
     <p:sldId id="256" r:id="rId1"/>
     <p:sldId id="257" r:id="rId2"/>
+    <p:sldId id="258" r:id="rId3"/>
   </p:sldIdLst>
 </p:presentation>`
 
@@ -103,7 +109,8 @@ const presRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
   <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide2.xml"/>
-  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide3.xml"/>
+  <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>
 </Relationships>`
 
 const slide1 = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -236,6 +243,75 @@ const slideMaster = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 </p:sldMaster>`
 
 const slideMasterRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+</Relationships>`
+
+const slide3 = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+  xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:cSld>
+    <p:spTree>
+      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+      <p:grpSpPr/>
+      <p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="2" name="Title 1"/>
+          <p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr>
+          <p:nvPr><p:ph type="title"/></p:nvPr>
+        </p:nvSpPr>
+        <p:spPr/>
+        <p:txBody>
+          <a:bodyPr/>
+          <a:lstStyle/>
+          <a:p><a:r><a:rPr lang="en-US"/><a:t>Comparison Table</a:t></a:r></a:p>
+        </p:txBody>
+      </p:sp>
+      <p:graphicFrame>
+        <p:nvGraphicFramePr>
+          <p:cNvPr id="5" name="Table 4"/>
+          <p:cNvGraphicFramePr><a:graphicFrameLocks noGrp="1"/></p:cNvGraphicFramePr>
+          <p:nvPr/>
+        </p:nvGraphicFramePr>
+        <p:xfrm><a:off x="0" y="0"/><a:ext cx="9144000" cy="3600000"/></p:xfrm>
+        <a:graphic>
+          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+            <a:tbl>
+              <a:tblGrid>
+                <a:gridCol w="3048000"/>
+                <a:gridCol w="3048000"/>
+                <a:gridCol w="3048000"/>
+              </a:tblGrid>
+              <a:tr h="370840">
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Feature</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Status</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Notes</a:t></a:r></a:p></a:txBody></a:tc>
+              </a:tr>
+              <a:tr h="370840">
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>XLSX to MD</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Done</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Multi-sheet support</a:t></a:r></a:p></a:txBody></a:tc>
+              </a:tr>
+              <a:tr h="370840">
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>PPTX to MD</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Done</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Image extraction</a:t></a:r></a:p></a:txBody></a:tc>
+              </a:tr>
+              <a:tr h="370840">
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>PPTX to PDF</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>In Progress</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Tables and images</a:t></a:r></a:p></a:txBody></a:tc>
+              </a:tr>
+            </a:tbl>
+          </a:graphicData>
+        </a:graphic>
+      </p:graphicFrame>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`
+
+const slide3Rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
 </Relationships>`

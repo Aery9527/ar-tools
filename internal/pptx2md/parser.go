@@ -16,6 +16,12 @@ type Slide struct {
 	Title  string
 	Bodies []string   // text paragraphs (non-title)
 	Images []ImageRef // image references
+	Tables []Table    // tables from graphicFrame elements
+}
+
+// Table represents a table extracted from a slide.
+type Table struct {
+	Rows [][]string // rows of cells, each cell is its text content
 }
 
 // ImageRef links an image to its media path inside the ZIP.
@@ -160,11 +166,24 @@ func parseSlide(zr *zip.ReadCloser, slidePath string, index int) (*Slide, error)
 		for _, pic := range grp.Pictures {
 			extractPicture(pic, slide, slideRels)
 		}
+		for _, gf := range grp.GraphicFrames {
+			extractTable(gf, slide)
+		}
 	}
 
 	// Extract pictures
 	for _, pic := range sld.CSld.SpTree.Pictures {
 		extractPicture(pic, slide, slideRels)
+	}
+
+	// Extract tables from graphicFrame elements
+	for _, gf := range sld.CSld.SpTree.GraphicFrames {
+		extractTable(gf, slide)
+	}
+
+	// Extract text from connector shapes
+	for _, cxn := range sld.CSld.SpTree.ConnShapes {
+		extractConnShapeText(cxn, slide)
 	}
 
 	return slide, nil
@@ -204,6 +223,50 @@ func extractPicture(pic xmlPicture, slide *Slide, rels map[string]string) {
 	slide.Images = append(slide.Images, ref)
 }
 
+func extractTable(gf xmlGraphicFrame, slide *Slide) {
+	if gf.Graphic == nil || gf.Graphic.GraphicData == nil || gf.Graphic.GraphicData.Table == nil {
+		return
+	}
+	tbl := gf.Graphic.GraphicData.Table
+	var rows [][]string
+	for _, tr := range tbl.Rows {
+		var cells []string
+		for _, tc := range tr.Cells {
+			cells = append(cells, cellText(tc))
+		}
+		rows = append(rows, cells)
+	}
+	if len(rows) > 0 {
+		slide.Tables = append(slide.Tables, Table{Rows: rows})
+	}
+}
+
+func cellText(tc xmlTableCell) string {
+	if tc.TxBody == nil {
+		return ""
+	}
+	var parts []string
+	for _, para := range tc.TxBody.Paragraphs {
+		text := paragraphText(para)
+		if text != "" {
+			parts = append(parts, text)
+		}
+	}
+	return strings.Join(parts, "\n")
+}
+
+func extractConnShapeText(cxn xmlConnShape, slide *Slide) {
+	if cxn.TxBody == nil {
+		return
+	}
+	for _, para := range cxn.TxBody.Paragraphs {
+		text := paragraphText(para)
+		if text != "" {
+			slide.Bodies = append(slide.Bodies, text)
+		}
+	}
+}
+
 func isPlaceholderTitle(sp xmlShape) bool {
 	if sp.NvSpPr == nil || sp.NvSpPr.NvPr == nil || sp.NvSpPr.NvPr.Ph == nil {
 		return false
@@ -217,6 +280,11 @@ func paragraphText(para xmlParagraph) string {
 	for _, run := range para.Runs {
 		if run.Text != "" {
 			parts = append(parts, run.Text)
+		}
+	}
+	for _, fld := range para.Fields {
+		if fld.Text != "" {
+			parts = append(parts, fld.Text)
 		}
 	}
 	return strings.Join(parts, "")
@@ -298,14 +366,17 @@ type xmlCSld struct {
 }
 
 type xmlSpTree struct {
-	Shapes      []xmlShape      `xml:"sp"`
-	Pictures    []xmlPicture    `xml:"pic"`
-	GroupShapes []xmlGroupShape `xml:"grpSp"`
+	Shapes         []xmlShape         `xml:"sp"`
+	Pictures       []xmlPicture       `xml:"pic"`
+	GroupShapes    []xmlGroupShape    `xml:"grpSp"`
+	GraphicFrames  []xmlGraphicFrame  `xml:"graphicFrame"`
+	ConnShapes     []xmlConnShape     `xml:"cxnSp"`
 }
 
 type xmlGroupShape struct {
-	Shapes   []xmlShape   `xml:"sp"`
-	Pictures []xmlPicture `xml:"pic"`
+	Shapes        []xmlShape         `xml:"sp"`
+	Pictures      []xmlPicture       `xml:"pic"`
+	GraphicFrames []xmlGraphicFrame  `xml:"graphicFrame"`
 }
 
 type xmlShape struct {
@@ -330,11 +401,20 @@ type xmlTxBody struct {
 }
 
 type xmlParagraph struct {
-	Runs []xmlRun `xml:"r"`
+	Runs   []xmlRun   `xml:"r"`
+	Fields []xmlField `xml:"fld"`
 }
 
 type xmlRun struct {
 	Text string `xml:"t"`
+}
+
+type xmlField struct {
+	Text string `xml:"t"`
+}
+
+type xmlConnShape struct {
+	TxBody *xmlTxBody `xml:"txBody"`
 }
 
 type xmlPicture struct {
@@ -347,6 +427,31 @@ type xmlBlipFill struct {
 
 type xmlBlip struct {
 	Embed string `xml:"embed,attr"`
+}
+
+type xmlGraphicFrame struct {
+	Graphic *xmlGraphic `xml:"graphic"`
+}
+
+type xmlGraphic struct {
+	GraphicData *xmlGraphicData `xml:"graphicData"`
+}
+
+type xmlGraphicData struct {
+	URI   string    `xml:"uri,attr"`
+	Table *xmlTable `xml:"tbl"`
+}
+
+type xmlTable struct {
+	Rows []xmlTableRow `xml:"tr"`
+}
+
+type xmlTableRow struct {
+	Cells []xmlTableCell `xml:"tc"`
+}
+
+type xmlTableCell struct {
+	TxBody *xmlTxBody `xml:"txBody"`
 }
 
 type xmlRelationships struct {

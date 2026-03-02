@@ -13,7 +13,7 @@ func TestParse_SamplePptx(t *testing.T) {
 	assert.NoError(t, err)
 	defer pres.Close()
 
-	assert.Len(t, pres.Slides, 2)
+	assert.Len(t, pres.Slides, 3)
 
 	// Slide 1: title slide
 	s1 := pres.Slides[0]
@@ -29,6 +29,15 @@ func TestParse_SamplePptx(t *testing.T) {
 	assert.Contains(t, s2.Bodies, "PowerPoint to Markdown conversion")
 	assert.Len(t, s2.Images, 1)
 	assert.Equal(t, "ppt/media/image1.png", s2.Images[0].MediaPath)
+
+	// Slide 3: table
+	s3 := pres.Slides[2]
+	assert.Equal(t, 3, s3.Index)
+	assert.Equal(t, "Comparison Table", s3.Title)
+	assert.Len(t, s3.Tables, 1)
+	assert.Len(t, s3.Tables[0].Rows, 4)
+	assert.Equal(t, []string{"Feature", "Status", "Notes"}, s3.Tables[0].Rows[0])
+	assert.Equal(t, []string{"XLSX to MD", "Done", "Multi-sheet support"}, s3.Tables[0].Rows[1])
 }
 
 func TestParse_FileNotFound(t *testing.T) {

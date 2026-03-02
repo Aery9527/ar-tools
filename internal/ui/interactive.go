@@ -10,6 +10,7 @@ import (
 
 	"ar-tools/internal/dialog"
 	"ar-tools/internal/pptx2md"
+	"ar-tools/internal/pptx2pdf"
 	"ar-tools/internal/xlsx2md"
 )
 
@@ -35,6 +36,10 @@ func Run() error {
 			if err := runPptx2md(); err != nil {
 				return err
 			}
+		case 3:
+			if err := runPptx2pdf(); err != nil {
+				return err
+			}
 		default:
 			fmt.Printf("無效的選項: %d\n", action)
 		}
@@ -45,6 +50,7 @@ func selectAction(scanner *bufio.Scanner) (int, error) {
 	fmt.Println("\n請選擇功能:")
 	fmt.Println("  1) Excel (.xlsx) → Markdown (.md)")
 	fmt.Println("  2) PowerPoint (.pptx) → Markdown (.md)")
+	fmt.Println("  3) PowerPoint (.pptx) → PDF (.pdf)")
 	fmt.Println("  0) 離開")
 	fmt.Print("\n請輸入編號: ")
 
@@ -144,6 +150,43 @@ func convertPptxFiles(files []string) error {
 		if result.ImageDir != "" {
 			fmt.Printf("  📁 圖片: %s\n", result.ImageDir)
 		}
+		succeeded++
+	}
+
+	printSummary(succeeded, failed)
+	return nil
+}
+
+func runPptx2pdf() error {
+	files, err := dialog.OpenMultipleFiles(
+		"選擇 PowerPoint 檔案",
+		"PowerPoint files (*.pptx)",
+		"*.pptx",
+	)
+	if err != nil {
+		return fmt.Errorf("檔案選擇失敗: %w", err)
+	}
+	if len(files) == 0 {
+		fmt.Println("已取消選擇")
+		return nil
+	}
+
+	return convertPptx2pdfFiles(files)
+}
+
+func convertPptx2pdfFiles(files []string) error {
+	opts := pptx2pdf.ConvertOptions{}
+
+	var succeeded, failed int
+	for _, f := range files {
+		outPath, err := pptx2pdf.Convert(f, opts)
+		if err != nil {
+			fmt.Printf("✗ %s: %v\n", filepath.Base(f), err)
+			failed++
+			continue
+		}
+
+		fmt.Printf("✓ %s → %s\n", filepath.Base(f), filepath.Base(outPath))
 		succeeded++
 	}
 
